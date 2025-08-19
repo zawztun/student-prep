@@ -19,7 +19,7 @@ export const studentRegistrationSchema = z.object({
   country: z
     .string()
     .min(2, 'Please select a country')
-    .max(2, 'Invalid country code'),
+    .max(50, 'Country name is too long'),
   state: z
     .string()
     .optional()
