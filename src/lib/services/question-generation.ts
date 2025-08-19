@@ -33,8 +33,6 @@ export interface GeneratedQuestion {
   subject: Subject
   difficulty: Difficulty
   localeScope: string
-  countryCode?: string
-  regionCode?: string
   tags: string[]
   choices: {
     id: string
@@ -105,25 +103,20 @@ export class QuestionGenerationService {
    */
   private buildLocaleHierarchy(studentCountry?: string, studentRegion?: string): Array<{
     scope: string
-    countryCode?: string
-    regionCode?: string
   }> {
     const hierarchy = []
 
     // Highest priority: Region-specific questions
     if (studentRegion && studentCountry) {
       hierarchy.push({
-        scope: 'REGION',
-        countryCode: studentCountry,
-        regionCode: studentRegion
+        scope: `STATE:${studentCountry}-${studentRegion}`
       })
     }
 
     // Medium priority: Country-specific questions
     if (studentCountry) {
       hierarchy.push({
-        scope: 'COUNTRY',
-        countryCode: studentCountry
+        scope: `COUNTRY:${studentCountry}`
       })
     }
 
@@ -143,8 +136,6 @@ export class QuestionGenerationService {
     difficulty: Difficulty,
     scope: {
       scope: string
-      countryCode?: string
-      regionCode?: string
     } | null,
     limit: number,
     excludeIds: string[]
@@ -160,12 +151,6 @@ export class QuestionGenerationService {
 
     if (scope) {
       where.localeScope = scope.scope
-      if (scope.countryCode) {
-        where.countryCode = scope.countryCode
-      }
-      if (scope.regionCode) {
-        where.regionCode = scope.regionCode
-      }
     }
 
     const questions = await prisma.question.findMany({

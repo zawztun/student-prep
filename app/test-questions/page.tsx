@@ -55,22 +55,35 @@ export default function TestQuestions() {
     setResults([])
     
     try {
-      const params = new URLSearchParams({
+      const requestBody: any = {
         subject,
         difficulty,
-        count
+        count: parseInt(count)
+      }
+      
+      if (studentCountry) requestBody.studentCountry = studentCountry
+      if (studentRegion) requestBody.studentRegion = studentRegion
+      
+      const response = await fetch('/api/questions/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       })
-      
-      if (studentCountry) params.append('studentCountry', studentCountry)
-      if (studentRegion) params.append('studentRegion', studentRegion)
-      
-      const response = await fetch(`/api/questions/generate?${params}`)
       
       if (response.ok) {
         const data = await response.json()
-        setQuestions(data.questions)
+        // Display only 2 questions even if more are requested
+        const displayQuestions = data.questions.slice(0, 2)
+        setQuestions(displayQuestions)
+        if (data.questions.length === 0) {
+          alert('No questions found for the selected criteria. Try different subject/difficulty.')
+        }
       } else {
-        alert('Failed to generate questions')
+        const errorData = await response.json()
+        console.error('Generate questions error:', errorData)
+        alert(`Failed to generate questions: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Generate questions error:', error)
@@ -152,6 +165,7 @@ export default function TestQuestions() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Question Generation Test</h1>
           <p className="text-gray-600 mt-2">Test the localized question generation system</p>
@@ -234,7 +248,17 @@ export default function TestQuestions() {
             </div>
             
             <div className="flex gap-2">
-              <Button onClick={generateQuestions} disabled={loading}>
+              <Button 
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('Generate Questions button clicked!')
+                  generateQuestions()
+                }} 
+                disabled={loading}
+                className="w-full"
+                type="button"
+              >
                 {loading ? 'Generating...' : 'Generate Questions'}
               </Button>
               {questions.length > 0 && (

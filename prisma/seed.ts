@@ -105,6 +105,46 @@ async function main() {
 
   // Create sample questions
   const mathQuestions = await Promise.all([
+    // MATH EASY questions
+    prisma.question.create({
+      data: {
+        stem: 'What is 7 + 8?',
+        subject: Subject.MATH,
+        gradeMin: 5,
+        gradeMax: 7,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['arithmetic', 'addition', 'basic'],
+        choices: {
+          create: [
+            { text: '14', isCorrect: false, order: 1, explanation: 'This would be 7 × 2, not 7 + 8' },
+            { text: '15', isCorrect: true, order: 2, explanation: 'Correct! 7 + 8 = 15' },
+            { text: '16', isCorrect: false, order: 3, explanation: 'This is one more than the correct answer' },
+            { text: '17', isCorrect: false, order: 4, explanation: 'This is two more than the correct answer' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is 12 - 5?',
+        subject: Subject.MATH,
+        gradeMin: 5,
+        gradeMax: 7,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['arithmetic', 'subtraction', 'basic'],
+        choices: {
+          create: [
+            { text: '6', isCorrect: false, order: 1, explanation: 'This is one less than the correct answer' },
+            { text: '7', isCorrect: true, order: 2, explanation: 'Correct! 12 - 5 = 7' },
+            { text: '8', isCorrect: false, order: 3, explanation: 'This is one more than the correct answer' },
+            { text: '17', isCorrect: false, order: 4, explanation: 'This would be 12 + 5, not 12 - 5' },
+          ],
+        },
+      },
+    }),
+    // MATH MEDIUM questions
     prisma.question.create({
       data: {
         stem: 'What is the value of x in the equation 2x + 5 = 13?',
@@ -143,9 +183,49 @@ async function main() {
         },
       },
     }),
+    // MATH HARD questions
+    prisma.question.create({
+      data: {
+        stem: 'If f(x) = 2x³ - 3x² + x - 5, what is f\'(2)?',
+        subject: Subject.MATH,
+        gradeMin: 11,
+        gradeMax: 12,
+        difficulty: Difficulty.HARD,
+        localeScope: 'GLOBAL',
+        tags: ['calculus', 'derivatives', 'polynomials'],
+        choices: {
+          create: [
+            { text: '13', isCorrect: true, order: 1, explanation: 'Correct! f\'(x) = 6x² - 6x + 1, so f\'(2) = 6(4) - 6(2) + 1 = 24 - 12 + 1 = 13' },
+            { text: '11', isCorrect: false, order: 2, explanation: 'This is the result if you forgot to add the constant term' },
+            { text: '25', isCorrect: false, order: 3, explanation: 'This is the result if you calculated f(2) instead of f\'(2)' },
+            { text: '7', isCorrect: false, order: 4, explanation: 'This is incorrect; check your derivative calculation' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is the limit of (sin x)/x as x approaches 0?',
+        subject: Subject.MATH,
+        gradeMin: 11,
+        gradeMax: 12,
+        difficulty: Difficulty.HARD,
+        localeScope: 'GLOBAL',
+        tags: ['calculus', 'limits', 'trigonometry'],
+        choices: {
+          create: [
+            { text: '0', isCorrect: false, order: 1, explanation: 'This would be true if sin x approached 0 faster than x' },
+            { text: '1', isCorrect: true, order: 2, explanation: 'Correct! This is a fundamental limit in calculus' },
+            { text: '∞', isCorrect: false, order: 3, explanation: 'The limit exists and is finite' },
+            { text: 'Does not exist', isCorrect: false, order: 4, explanation: 'The limit does exist and equals 1' },
+          ],
+        },
+      },
+    }),
   ])
 
   const scienceQuestions = await Promise.all([
+    // SCIENCE EASY questions
     prisma.question.create({
       data: {
         stem: 'What is the chemical symbol for gold?',
@@ -184,9 +264,86 @@ async function main() {
         },
       },
     }),
+    prisma.question.create({
+      data: {
+        stem: 'What gas do plants absorb from the atmosphere during photosynthesis?',
+        subject: Subject.SCIENCE,
+        gradeMin: 6,
+        gradeMax: 10,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['biology', 'photosynthesis', 'plants'],
+        choices: {
+          create: [
+            { text: 'Oxygen', isCorrect: false, order: 1, explanation: 'Plants release oxygen during photosynthesis' },
+            { text: 'Carbon dioxide', isCorrect: true, order: 2, explanation: 'Correct! Plants absorb CO2 and convert it to glucose' },
+            { text: 'Nitrogen', isCorrect: false, order: 3, explanation: 'Nitrogen is not directly used in photosynthesis' },
+            { text: 'Hydrogen', isCorrect: false, order: 4, explanation: 'Hydrogen comes from water, not directly from the atmosphere' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is the hardest natural substance on Earth?',
+        subject: Subject.SCIENCE,
+        gradeMin: 7,
+        gradeMax: 12,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['geology', 'minerals', 'hardness'],
+        choices: {
+          create: [
+            { text: 'Quartz', isCorrect: false, order: 1, explanation: 'Quartz is hard but not the hardest natural substance' },
+            { text: 'Diamond', isCorrect: true, order: 2, explanation: 'Correct! Diamond has a hardness of 10 on the Mohs scale' },
+            { text: 'Steel', isCorrect: false, order: 3, explanation: 'Steel is man-made, not a natural substance' },
+            { text: 'Granite', isCorrect: false, order: 4, explanation: 'Granite is a rock composed of various minerals' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'How many bones are there in an adult human body?',
+        subject: Subject.SCIENCE,
+        gradeMin: 8,
+        gradeMax: 12,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['biology', 'human-anatomy', 'bones'],
+        choices: {
+          create: [
+            { text: '186', isCorrect: false, order: 1, explanation: 'This is too few bones for an adult human' },
+            { text: '206', isCorrect: true, order: 2, explanation: 'Correct! An adult human has 206 bones' },
+            { text: '226', isCorrect: false, order: 3, explanation: 'This is too many bones for an adult human' },
+            { text: '246', isCorrect: false, order: 4, explanation: 'This is significantly more than the actual number' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is the center of an atom called?',
+        subject: Subject.SCIENCE,
+        gradeMin: 7,
+        gradeMax: 11,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['physics', 'atomic-structure', 'atoms'],
+        choices: {
+          create: [
+            { text: 'Electron', isCorrect: false, order: 1, explanation: 'Electrons orbit around the center of the atom' },
+            { text: 'Proton', isCorrect: false, order: 2, explanation: 'Protons are found in the center but the center itself has a name' },
+            { text: 'Nucleus', isCorrect: true, order: 3, explanation: 'Correct! The nucleus is the center of an atom containing protons and neutrons' },
+            { text: 'Neutron', isCorrect: false, order: 4, explanation: 'Neutrons are found in the center but the center itself has a name' },
+          ],
+        },
+      },
+    }),
   ])
 
   const englishQuestions = await Promise.all([
+    // ENGLISH EASY questions
     prisma.question.create({
       data: {
         stem: 'Which of the following is a synonym for "happy"?',
@@ -202,6 +359,103 @@ async function main() {
             { text: 'Angry', isCorrect: false, order: 2, explanation: 'Angry is a different emotion, not related to happiness' },
             { text: 'Joyful', isCorrect: true, order: 3, explanation: 'Correct! Joyful is a synonym for happy' },
             { text: 'Tired', isCorrect: false, order: 4, explanation: 'Tired describes a physical state, not an emotion like happy' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is the plural form of "child"?',
+        subject: Subject.ENGLISH,
+        gradeMin: 5,
+        gradeMax: 8,
+        difficulty: Difficulty.EASY,
+        localeScope: 'GLOBAL',
+        tags: ['grammar', 'plurals', 'irregular'],
+        choices: {
+          create: [
+            { text: 'Childs', isCorrect: false, order: 1, explanation: 'This follows regular plural rules but "child" is irregular' },
+            { text: 'Children', isCorrect: true, order: 2, explanation: 'Correct! "Children" is the irregular plural of "child"' },
+            { text: 'Childes', isCorrect: false, order: 3, explanation: 'This is not a valid English plural form' },
+            { text: 'Child', isCorrect: false, order: 4, explanation: 'This is the singular form, not plural' },
+          ],
+        },
+      },
+    }),
+    // ENGLISH MEDIUM questions
+    prisma.question.create({
+      data: {
+        stem: 'Which sentence uses the correct form of "their," "there," or "they\'re"?',
+        subject: Subject.ENGLISH,
+        gradeMin: 8,
+        gradeMax: 10,
+        difficulty: Difficulty.MEDIUM,
+        localeScope: 'GLOBAL',
+        tags: ['grammar', 'homophones', 'usage'],
+        choices: {
+          create: [
+            { text: 'Their going to the store.', isCorrect: false, order: 1, explanation: 'Should be "They\'re" (they are) going to the store' },
+            { text: 'The books are over they\'re.', isCorrect: false, order: 2, explanation: 'Should be "there" (location) not "they\'re" (they are)' },
+            { text: 'They\'re planning their vacation.', isCorrect: true, order: 3, explanation: 'Correct! "They\'re" = they are, "their" = possessive' },
+            { text: 'There car is in the garage.', isCorrect: false, order: 4, explanation: 'Should be "Their" (possessive) car, not "there" (location)' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'What is the main theme of Shakespeare\'s "Romeo and Juliet"?',
+        subject: Subject.ENGLISH,
+        gradeMin: 9,
+        gradeMax: 12,
+        difficulty: Difficulty.MEDIUM,
+        localeScope: 'GLOBAL',
+        tags: ['literature', 'shakespeare', 'themes'],
+        choices: {
+          create: [
+            { text: 'The importance of education', isCorrect: false, order: 1, explanation: 'Education is not a central theme in Romeo and Juliet' },
+            { text: 'Love conquers all obstacles', isCorrect: true, order: 2, explanation: 'Correct! The tragic love story shows love\'s power despite family feuds' },
+            { text: 'The dangers of technology', isCorrect: false, order: 3, explanation: 'Technology was not a concern in Shakespeare\'s time' },
+            { text: 'The value of hard work', isCorrect: false, order: 4, explanation: 'Hard work is not a main theme in this tragedy' },
+          ],
+        },
+      },
+    }),
+    // ENGLISH HARD questions
+    prisma.question.create({
+      data: {
+        stem: 'Which literary device is used in the phrase "The wind whispered through the trees"?',
+        subject: Subject.ENGLISH,
+        gradeMin: 10,
+        gradeMax: 12,
+        difficulty: Difficulty.HARD,
+        localeScope: 'GLOBAL',
+        tags: ['literature', 'literary-devices', 'figurative-language'],
+        choices: {
+          create: [
+            { text: 'Metaphor', isCorrect: false, order: 1, explanation: 'A metaphor directly compares two things without "like" or "as"' },
+            { text: 'Personification', isCorrect: true, order: 2, explanation: 'Correct! Giving human qualities (whispering) to non-human things (wind)' },
+            { text: 'Simile', isCorrect: false, order: 3, explanation: 'A simile uses "like" or "as" to compare things' },
+            { text: 'Alliteration', isCorrect: false, order: 4, explanation: 'Alliteration is repetition of initial consonant sounds' },
+          ],
+        },
+      },
+    }),
+    prisma.question.create({
+      data: {
+        stem: 'In which narrative perspective is the story told if the narrator uses "I" and knows only their own thoughts?',
+        subject: Subject.ENGLISH,
+        gradeMin: 10,
+        gradeMax: 12,
+        difficulty: Difficulty.HARD,
+        localeScope: 'GLOBAL',
+        tags: ['literature', 'narrative-perspective', 'point-of-view'],
+        choices: {
+          create: [
+            { text: 'Third person omniscient', isCorrect: false, order: 1, explanation: 'Third person omniscient uses "he/she" and knows all characters\' thoughts' },
+            { text: 'First person limited', isCorrect: true, order: 2, explanation: 'Correct! First person limited uses "I" and knows only the narrator\'s thoughts' },
+            { text: 'Second person', isCorrect: false, order: 3, explanation: 'Second person uses "you" to address the reader directly' },
+            { text: 'Third person limited', isCorrect: false, order: 4, explanation: 'Third person limited uses "he/she" and focuses on one character\'s perspective' },
           ],
         },
       },
