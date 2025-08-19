@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Release 1.0 Models
+model Student {
+  id              String     @id @default(cuid())
+  name            String
+  email           String     @unique
+  grade           Int
+  country         String
+  state           String?
+  emailPreference Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  // Relations
+  studyPlan       StudyPlan?
+  assignments     Assignment[]
+  weeklyReports   WeeklyReport[]
+  
+  @@map("students")
+}
+
+model StudyPlan {
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  schedule  String[] // Days of the week: ['Monday', 'Wednesday', 'Friday']
+  channels  String[] // Delivery channels: ['Email', 'In-App'] or ['In-App']
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@map("study_plans")
+}
+
+// Release 2.0 Models
+model Question {
+  id          String    @id @default(cuid())
+  text        String
+  subject     Subject
+  gradeMin    Int
+  gradeMax    Int
+  difficulty  Difficulty
+  localeScope String    // 'US-CA', 'US', 'Global'
+  explanation String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  choices            QuestionChoice[]
+  analytics          QuestionAnalytics?
+  assignmentQuestions AssignmentQuestion[]
+  submissions        AssignmentSubmission[]
+  
+  @@map("questions")
+}
+
+model QuestionChoice {
+  id         String  @id @default(cuid())
+  questionId String
+  text       String
+  isCorrect  Boolean
+  order      Int
+  
+  // Relations
+  question    Question               @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+  
+  @@map("question_choices")
+}
+
+model QuestionAnalytics {
+  id               String   @id @default(cuid())
+  questionId       String   @unique
+  totalAttempts    Int      @default(0)
+  correctAttempts  Int      @default(0)
+  averageTimeSpent Float    @default(0) // in seconds
+  lastUsed         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@map("question_analytics")
+}
+
+// Release 3.0 Models
+model Assignment {
+  id           String           @id @default(cuid())
+  studentId    String
+  title        String
+  description  String
+  scheduledFor DateTime
+  status       AssignmentStatus @default(SCHEDULED)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  
+  // Relations
+  student     Student                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questions   AssignmentQuestion[]
+  submissions AssignmentSubmission[]
+  
+  @@map("assignments")
+}
+
+model AssignmentQuestion {
+  id           String @id @default(cuid())
+  assignmentId String
+  questionId   String
+  order        Int
+  
+  // Relations
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([assignmentId, questionId])
+  @@map("assignment_questions")
+}
+
+model AssignmentSubmission {
+  id               String   @id @default(cuid())
+  assignmentId     String
+  questionId       String
+  selectedChoiceId String
+  isCorrect        Boolean
+  timeSpent        Int      // in seconds
+  submittedAt      DateTime @default(now())
+  
+  // Relations
+  assignment     Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedChoice QuestionChoice @relation(fields: [selectedChoiceId], references: [id], onDelete: Cascade)
+  
+  @@unique([assignmentId, questionId])
+  @@map("assignment_submissions")
+}
+
+model WeeklyReport {
+  id                   String    @id @default(cuid())
+  studentId            String
+  weekStartDate        DateTime
+  weekEndDate          DateTime
+  totalAssignments     Int
+  completedAssignments Int
+  averageScore         Float
+  totalTimeSpent       Int       // in minutes
+  strongSubjects       Subject[]
+  weakSubjects         Subject[]
+  recommendations      String[]
+  sentAt               DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, weekStartDate])
+  @@map("weekly_reports")
+}
+
+// Enums
+enum Subject {
+  MATH
+  SCIENCE
+  ENGLISH
+  HISTORY
+  GEOGRAPHY
+  PHYSICS
+  CHEMISTRY
+  BIOLOGY
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum AssignmentStatus {
+  SCHEDULED
+  DELIVERED
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}

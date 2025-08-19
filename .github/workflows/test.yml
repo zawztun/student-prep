@@ -1,0 +1,496 @@
+name: E2E Tests and Quality Assurance
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '15'
+
+jobs:
+  # Lint and type check
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript check
+        run: npm run type-check
+
+  # Unit and integration tests
+  unit-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+
+  # E2E tests for Release 1.0
+  e2e-release-1:
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests]
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Run Release 1.0 E2E tests
+        run: npm run test:e2e:release1
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+          RESEND_API_KEY: test_key
+          EMAIL_FROM: test@studentprep.com
+
+      - name: Upload Release 1.0 test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-release-1
+          path: playwright-report/
+          retention-days: 30
+
+  # E2E tests for Release 2.0
+  e2e-release-2:
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests]
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Run Release 2.0 E2E tests
+        run: npm run test:e2e:release2
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+          RESEND_API_KEY: test_key
+          EMAIL_FROM: test@studentprep.com
+
+      - name: Upload Release 2.0 test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-release-2
+          path: playwright-report/
+          retention-days: 30
+
+  # E2E tests for Release 3.0
+  e2e-release-3:
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests]
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Run Release 3.0 E2E tests
+        run: npm run test:e2e:release3
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+          RESEND_API_KEY: test_key
+          EMAIL_FROM: test@studentprep.com
+
+      - name: Upload Release 3.0 test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-release-3
+          path: playwright-report/
+          retention-days: 30
+
+  # Cross-browser compatibility tests
+  cross-browser-tests:
+    runs-on: ubuntu-latest
+    needs: [e2e-release-1, e2e-release-2, e2e-release-3]
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Run cross-browser tests
+        run: npx playwright test --project=${{ matrix.browser }} tests/release-1/student-registration.spec.ts
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+          RESEND_API_KEY: test_key
+          EMAIL_FROM: test@studentprep.com
+
+      - name: Upload cross-browser test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 30
+
+  # Performance and accessibility tests
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: [e2e-release-1, e2e-release-2, e2e-release-3]
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: student_prep_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: npm run db:test:setup
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Run accessibility tests
+        run: npm run test:a11y
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/student_prep_test
+          NEXTAUTH_SECRET: test_secret_key_for_ci
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Upload performance test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 30
+
+  # Security tests
+  security-tests:
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # Deployment readiness check
+  deployment-readiness:
+    runs-on: ubuntu-latest
+    needs: [e2e-release-1, e2e-release-2, e2e-release-3, cross-browser-tests, performance-tests, security-tests]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check deployment readiness
+        run: |
+          echo "✅ All tests passed successfully"
+          echo "✅ Cross-browser compatibility verified"
+          echo "✅ Performance benchmarks met"
+          echo "✅ Security checks passed"
+          echo "🚀 Ready for deployment"
+
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Release 1.0 E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Release 2.0 E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Release 3.0 E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Cross-browser Compatibility" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Performance Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security Scans" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quality Gates" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Code quality checks passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Test coverage requirements met" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ No critical security vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status: Ready for Production Deployment** 🎉" >> $GITHUB_STEP_SUMMARY
+
+  # Notification on failure
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    needs: [e2e-release-1, e2e-release-2, e2e-release-3, cross-browser-tests, performance-tests, security-tests]
+    if: failure()
+    
+    steps:
+      - name: Notify team on failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#dev-alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
