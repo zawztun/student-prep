@@ -46,54 +46,70 @@ model StudyPlan {
 
 // Release 2.0 Models
 model Question {
-  id          String    @id @default(cuid())
-  text        String
-  subject     Subject
-  gradeMin    Int
-  gradeMax    Int
-  difficulty  Difficulty
-  localeScope String    // 'US-CA', 'US', 'Global'
-  explanation String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String         @id @default(cuid())
+  stem          String         @db.Text
+  subject       Subject
+  gradeMin      Int            @db.SmallInt
+  gradeMax      Int            @db.SmallInt
+  localeScope   String         @db.VarChar(20) // GLOBAL, COUNTRY:US, STATE:US-NY
+  difficulty    Difficulty     @default(MEDIUM)
+  tags          String[]       // ["algebra", "equations", "word-problems"]
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     String?        // Admin user ID
   
   // Relations
-  choices            QuestionChoice[]
-  analytics          QuestionAnalytics?
-  assignmentQuestions AssignmentQuestion[]
-  submissions        AssignmentSubmission[]
+  choices       QuestionChoice[]
+  assignments   AssignmentQuestion[]
+  analytics     QuestionAnalytics[]
+  submissions   AssignmentSubmission[]
   
+  @@index([subject, gradeMin, gradeMax])
+  @@index([localeScope])
+  @@index([isActive])
   @@map("questions")
 }
 
 model QuestionChoice {
-  id         String  @id @default(cuid())
-  questionId String
-  text       String
-  isCorrect  Boolean
-  order      Int
+  id          String   @id @default(cuid())
+  questionId  String
+  text        String   @db.Text
+  isCorrect   Boolean  @default(false)
+  explanation String?  @db.Text
+  order       Int      @db.SmallInt
   
-  // Relations
-  question    Question               @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   submissions AssignmentSubmission[]
   
+  @@unique([questionId, order])
   @@map("question_choices")
 }
 
 model QuestionAnalytics {
-  id               String   @id @default(cuid())
-  questionId       String   @unique
-  totalAttempts    Int      @default(0)
-  correctAttempts  Int      @default(0)
-  averageTimeSpent Float    @default(0) // in seconds
-  lastUsed         DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id           String   @id @default(cuid())
+  questionId   String
+  timesUsed    Int      @default(0)
+  correctRate  Float    @default(0.0)
+  avgTimeSpent Int?     // in seconds
+  lastUsed     DateTime?
   
-  // Relations
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   
+  @@unique([questionId])
   @@map("question_analytics")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // hashed
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("admins")
 }
 
 // Release 3.0 Models

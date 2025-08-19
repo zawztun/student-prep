@@ -107,38 +107,38 @@ async function main() {
   const mathQuestions = await Promise.all([
     prisma.question.create({
       data: {
-        text: 'What is the value of x in the equation 2x + 5 = 13?',
+        stem: 'What is the value of x in the equation 2x + 5 = 13?',
         subject: Subject.MATH,
         gradeMin: 8,
         gradeMax: 10,
         difficulty: Difficulty.MEDIUM,
-        localeScope: 'Global',
-        explanation: 'To solve 2x + 5 = 13, subtract 5 from both sides to get 2x = 8, then divide by 2 to get x = 4.',
+        localeScope: 'GLOBAL',
+        tags: ['algebra', 'equations', 'solving'],
         choices: {
           create: [
-            { text: '3', isCorrect: false, order: 1 },
-            { text: '4', isCorrect: true, order: 2 },
-            { text: '5', isCorrect: false, order: 3 },
-            { text: '6', isCorrect: false, order: 4 },
+            { text: '3', isCorrect: false, order: 1, explanation: 'This would be correct if the equation was 2x + 3 = 9' },
+            { text: '4', isCorrect: true, order: 2, explanation: 'Correct! 2(4) + 5 = 8 + 5 = 13' },
+            { text: '5', isCorrect: false, order: 3, explanation: 'This gives us 2(5) + 5 = 15, which is too high' },
+            { text: '6', isCorrect: false, order: 4, explanation: 'This gives us 2(6) + 5 = 17, which is too high' },
           ],
         },
       },
     }),
     prisma.question.create({
       data: {
-        text: 'What is the area of a circle with radius 5 units?',
+        stem: 'What is the area of a circle with radius 5 units?',
         subject: Subject.MATH,
         gradeMin: 9,
         gradeMax: 12,
         difficulty: Difficulty.MEDIUM,
-        localeScope: 'Global',
-        explanation: 'The area of a circle is π × r². With r = 5, the area is π × 5² = 25π square units.',
+        localeScope: 'GLOBAL',
+        tags: ['geometry', 'circles', 'area'],
         choices: {
           create: [
-            { text: '10π', isCorrect: false, order: 1 },
-            { text: '25π', isCorrect: true, order: 2 },
-            { text: '50π', isCorrect: false, order: 3 },
-            { text: '100π', isCorrect: false, order: 4 },
+            { text: '10π', isCorrect: false, order: 1, explanation: 'This would be the circumference formula: 2πr = 2π(5) = 10π' },
+            { text: '25π', isCorrect: true, order: 2, explanation: 'Correct! Area = πr² = π(5)² = 25π square units' },
+            { text: '50π', isCorrect: false, order: 3, explanation: 'This is double the correct answer' },
+            { text: '100π', isCorrect: false, order: 4, explanation: 'This would be if we used diameter instead of radius' },
           ],
         },
       },
@@ -148,38 +148,38 @@ async function main() {
   const scienceQuestions = await Promise.all([
     prisma.question.create({
       data: {
-        text: 'What is the chemical symbol for gold?',
+        stem: 'What is the chemical symbol for gold?',
         subject: Subject.SCIENCE,
         gradeMin: 7,
         gradeMax: 12,
         difficulty: Difficulty.EASY,
-        localeScope: 'Global',
-        explanation: 'Gold has the chemical symbol Au, derived from the Latin word "aurum".',
+        localeScope: 'GLOBAL',
+        tags: ['chemistry', 'elements', 'symbols'],
         choices: {
           create: [
-            { text: 'Go', isCorrect: false, order: 1 },
-            { text: 'Gd', isCorrect: false, order: 2 },
-            { text: 'Au', isCorrect: true, order: 3 },
-            { text: 'Ag', isCorrect: false, order: 4 },
+            { text: 'Go', isCorrect: false, order: 1, explanation: 'This is not a valid chemical symbol' },
+            { text: 'Gd', isCorrect: false, order: 2, explanation: 'This is the symbol for Gadolinium' },
+            { text: 'Au', isCorrect: true, order: 3, explanation: 'Correct! Au comes from the Latin word "aurum"' },
+            { text: 'Ag', isCorrect: false, order: 4, explanation: 'This is the symbol for Silver (argentum)' },
           ],
         },
       },
     }),
     prisma.question.create({
       data: {
-        text: 'Which planet is known as the Red Planet?',
+        stem: 'Which planet is known as the Red Planet?',
         subject: Subject.SCIENCE,
         gradeMin: 6,
         gradeMax: 10,
         difficulty: Difficulty.EASY,
-        localeScope: 'Global',
-        explanation: 'Mars is known as the Red Planet due to iron oxide (rust) on its surface.',
+        localeScope: 'GLOBAL',
+        tags: ['astronomy', 'planets', 'solar-system'],
         choices: {
           create: [
-            { text: 'Venus', isCorrect: false, order: 1 },
-            { text: 'Mars', isCorrect: true, order: 2 },
-            { text: 'Jupiter', isCorrect: false, order: 3 },
-            { text: 'Saturn', isCorrect: false, order: 4 },
+            { text: 'Venus', isCorrect: false, order: 1, explanation: 'Venus is known for its thick atmosphere and extreme heat' },
+            { text: 'Mars', isCorrect: true, order: 2, explanation: 'Correct! Mars appears red due to iron oxide (rust) on its surface' },
+            { text: 'Jupiter', isCorrect: false, order: 3, explanation: 'Jupiter is the largest planet and has a Great Red Spot' },
+            { text: 'Saturn', isCorrect: false, order: 4, explanation: 'Saturn is known for its prominent ring system' },
           ],
         },
       },
@@ -189,19 +189,19 @@ async function main() {
   const englishQuestions = await Promise.all([
     prisma.question.create({
       data: {
-        text: 'Which of the following is a synonym for "happy"?',
+        stem: 'Which of the following is a synonym for "happy"?',
         subject: Subject.ENGLISH,
         gradeMin: 5,
         gradeMax: 8,
         difficulty: Difficulty.EASY,
-        localeScope: 'Global',
-        explanation: 'Joyful is a synonym for happy, both expressing a feeling of pleasure or contentment.',
+        localeScope: 'GLOBAL',
+        tags: ['vocabulary', 'synonyms', 'emotions'],
         choices: {
           create: [
-            { text: 'Sad', isCorrect: false, order: 1 },
-            { text: 'Angry', isCorrect: false, order: 2 },
-            { text: 'Joyful', isCorrect: true, order: 3 },
-            { text: 'Tired', isCorrect: false, order: 4 },
+            { text: 'Sad', isCorrect: false, order: 1, explanation: 'Sad is an antonym (opposite) of happy' },
+            { text: 'Angry', isCorrect: false, order: 2, explanation: 'Angry is a different emotion, not related to happiness' },
+            { text: 'Joyful', isCorrect: true, order: 3, explanation: 'Correct! Joyful is a synonym for happy' },
+            { text: 'Tired', isCorrect: false, order: 4, explanation: 'Tired describes a physical state, not an emotion like happy' },
           ],
         },
       },
@@ -214,17 +214,19 @@ async function main() {
 
   // Create question analytics
   await Promise.all(
-    allQuestions.map((question) =>
-      prisma.questionAnalytics.create({
+    allQuestions.map((question) => {
+      const timesUsed = Math.floor(Math.random() * 100) + 10
+      const correctAttempts = Math.floor(Math.random() * timesUsed) + 1
+      return prisma.questionAnalytics.create({
         data: {
           questionId: question.id,
-          totalAttempts: Math.floor(Math.random() * 100) + 10,
-          correctAttempts: Math.floor(Math.random() * 50) + 5,
-          averageTimeSpent: Math.floor(Math.random() * 120) + 30,
+          timesUsed,
+          correctRate: correctAttempts / timesUsed,
+          avgTimeSpent: Math.floor(Math.random() * 120) + 30,
           lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
         },
       })
-    )
+    })
   )
 
   console.log('📊 Created question analytics')
